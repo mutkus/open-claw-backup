@@ -1,3 +1,6 @@
+# Author: Mustafa Utku Seyithanoglu
+# Personal: mutk.us
+# Blog: mutkus.com 
 # Example sudoers rule for the automation user that n8n's SSH credential
 # connects as. Copy this to /etc/sudoers.d/openclaw-backup on the OpenClaw
 # server and edit the username to match your setup.
