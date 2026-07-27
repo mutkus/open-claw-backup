@@ -1,21 +1,43 @@
 # n8n workflow export
 
-This folder is where the actual n8n workflow JSON files live once you export
-them from your own instance — they aren't included in this template because
-they contain your credential *references* (names/IDs) and folder IDs, which
-are specific to your n8n instance and Google Drive account.
+## `openclaw-backup.json`
 
-## How to export
+The main backup workflow **is included** in this folder as a redacted
+template — credential IDs, the Google Drive folder ID, the Telegram chat
+ID, and other instance-specific identifiers have been replaced with
+placeholders so it's safe to publish.
 
-1. Open the workflow in n8n.
+### Using it
+
+1. In n8n: **Workflows → Import from File** → select `openclaw-backup.json`.
+2. Re-select (or create) each credential the import prompts you for:
+   - SSH credential on the three SSH nodes
+   - Google Drive OAuth2 credential on the three Google Drive nodes
+   - Telegram credential on the "Send a text message" node
+
+   n8n will flag these automatically since the placeholder credential IDs
+   won't match anything in your instance.
+3. Manually replace these two node parameter values — n8n won't prompt for
+   these, they're just placeholder text sitting in the field:
+   - **Google Drive Upload** node → `Parent Folder` → your real Drive folder ID
+   - **Send a text message** (Telegram) node → `Chat ID` → your real chat ID
+4. The workflow imports as **inactive** on purpose — review the Schedule
+   Trigger and everything else, then activate it yourself.
+
+You don't need to touch `versionId`, the workflow `id`, or `webhookId` —
+n8n regenerates these on import.
+
+## `openclaw-backup-error-handler.json`
+
+The error-handling workflow (Error Trigger → Telegram) is **not** included
+here yet, since it hasn't been exported/redacted. To add it:
+
+1. Open the error-handling workflow in n8n.
 2. Click the **`...`** menu (top right) → **Download**.
-3. Save the file here as `openclaw-backup.json`.
-4. Repeat for the error-handling workflow → save as `openclaw-backup-error-handler.json`.
-
-Exported workflow JSON never contains credential *secrets* (tokens, passwords,
-private keys) — only credential names/IDs and node parameters — so it's safe
-to commit, but double-check before pushing if you've hardcoded anything
-(folder IDs, chat IDs) that you'd rather keep private.
+3. Before committing, check it for the same kind of instance-specific
+   values called out above (Telegram chat ID, credential IDs, `meta.instanceId`)
+   and swap them for placeholders.
+4. Save it here as `openclaw-backup-error-handler.json`.
 
 ## Workflow structure (for reference)
 
