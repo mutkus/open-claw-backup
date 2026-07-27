@@ -1,0 +1,301 @@
+{
+  "name": "OpenClaw Backup",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "months"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -512,
+        -144
+      ],
+      "id": "ac558a33-db12-4a43-a67c-fea2d7755f4e",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "command": "=rm -f {{ $node[\"Sunucu da Backup Script Çalıştırma\"].json.stdout.trim() }}"
+      },
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        256,
+        -144
+      ],
+      "id": "3bc9e033-2a0a-459e-b45e-f162fca5d6e6",
+      "name": "Sunucudan Silme",
+      "credentials": {
+        "sshPassword": {
+          "id": "YOUR_SSH_CREDENTIAL_ID",
+          "name": "OpenClaw"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "sudo -n /usr/local/bin/openclaw-backup.sh"
+      },
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        -144
+      ],
+      "id": "cc61a108-6e82-4687-8474-a9ac66d4804b",
+      "name": "Sunucu da Backup Script Çalıştırma",
+      "credentials": {
+        "sshPassword": {
+          "id": "YOUR_SSH_CREDENTIAL_ID",
+          "name": "OpenClaw"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "download",
+        "path": "={{ $json.stdout.trim() }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        -144
+      ],
+      "id": "dabb819b-ead8-402c-b443-3cc3c75c1ec9",
+      "name": "Backup'ı İndirme",
+      "credentials": {
+        "sshPassword": {
+          "id": "YOUR_SSH_CREDENTIAL_ID",
+          "name": "OpenClaw"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "={{ $json.stdout.trim().split('/').pop() }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_DRIVE_FOLDER_ID",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        80,
+        -144
+      ],
+      "id": "5233da37-9b7c-47e9-a525-0a17945a926c",
+      "name": "Google Drive Upload",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "YOUR_GOOGLE_DRIVE_CREDENTIAL_ID",
+          "name": "Claw Drive Backup OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "searchMethod": "query",
+        "queryString": "='{{ $(\"Google Drive Upload\").item.json.parents[0] }}' in parents and name contains 'openclaw-backup' and trashed = false",
+        "returnAll": true,
+        "filter": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        448,
+        -144
+      ],
+      "id": "c1fe79c9-2007-4a37-be22-76b40556056d",
+      "name": "Drive'da Dosyaları Bulma",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "YOUR_GOOGLE_DRIVE_CREDENTIAL_ID",
+          "name": "Claw Drive Backup OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const files = $input.all()\n  .map(item => item.json)\n  .sort((a, b) => new Date(a.createdTime) - new Date(b.createdTime));\n\nif (files.length > 2) {\n  return [{ json: { fileIdToDelete: files[0].id, fileNameToDelete: files[0].name } }];\n}\n\nreturn [];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        656,
+        -144
+      ],
+      "id": "52e9109f-0323-4ac2-a0d8-0feb37db5a06",
+      "name": "Eski Dosyayı Tespit Etme"
+    },
+    {
+      "parameters": {
+        "operation": "deleteFile",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.fileIdToDelete }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        832,
+        -144
+      ],
+      "id": "d2029e06-e0bc-48e5-bb27-f599ba1c7644",
+      "name": "Eski Dosyayı Silme",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "YOUR_GOOGLE_DRIVE_CREDENTIAL_ID",
+          "name": "Claw Drive Backup OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "=✅ OpenClaw yedeği başarıyla alındı ve Drive'a yüklendi. Dosya: {{ $(\"Backup'ı İndirme\").item.binary.data.fileName }} Boyut: {{ ($(\"Backup'ı İndirme\").item.binary.data.fileSize / (1024*1024)).toFixed(1) }} MB Tarih: {{ $now.toFormat('dd.MM.yyyy HH:mm') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        80
+      ],
+      "id": "8129051f-9d5c-48bb-92ad-88dce646e91b",
+      "name": "Send a text message",
+      "webhookId": "YOUR_WEBHOOK_ID",
+      "credentials": {
+        "telegramApi": {
+          "id": "YOUR_TELEGRAM_CREDENTIAL_ID",
+          "name": "OpenClaw Telegram Bot"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Sunucu da Backup Script Çalıştırma",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sunucudan Silme": {
+      "main": [
+        [
+          {
+            "node": "Drive'da Dosyaları Bulma",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sunucu da Backup Script Çalıştırma": {
+      "main": [
+        [
+          {
+            "node": "Backup'ı İndirme",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Backup'ı İndirme": {
+      "main": [
+        [
+          {
+            "node": "Google Drive Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Upload": {
+      "main": [
+        [
+          {
+            "node": "Sunucudan Silme",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Drive'da Dosyaları Bulma": {
+      "main": [
+        [
+          {
+            "node": "Eski Dosyayı Tespit Etme",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Eski Dosyayı Tespit Etme": {
+      "main": [
+        [
+          {
+            "node": "Eski Dosyayı Silme",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "timezone": "Europe/Istanbul"
+  },
+  "versionId": "YOUR_VERSION_ID",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "YOUR_WORKFLOW_ID",
+  "tags": []
+}
