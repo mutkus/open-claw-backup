@@ -1,0 +1,13 @@
+# Example sudoers rule for the automation user that n8n's SSH credential
+# connects as. Copy this to /etc/sudoers.d/openclaw-backup on the OpenClaw
+# server and edit the username to match your setup.
+#
+# This grants NOPASSWD root access to exactly one command — nothing else —
+# so a leaked SSH key only ever lets an attacker run this specific backup
+# script, not arbitrary root commands.
+#
+# Install:
+#   sudo visudo -f /etc/sudoers.d/openclaw-backup
+#   (paste the line below, replacing "automation" with your SSH user)
+#
+automation ALL=(root) NOPASSWD: /usr/local/bin/openclaw-backup.sh
