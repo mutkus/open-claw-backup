@@ -29,15 +29,24 @@ n8n regenerates these on import.
 
 ## `openclaw-backup-error-handler.json`
 
-The error-handling workflow (Error Trigger → Telegram) is **not** included
-here yet, since it hasn't been exported/redacted. To add it:
+The error-handling workflow (Error Trigger → Telegram) **is included** in
+this folder as a redacted template, same as the main workflow — the
+Telegram chat ID, credential ID, `versionId`, `webhookId`, workflow `id`,
+and `meta.instanceId` have all been replaced with placeholders or removed.
 
-1. Open the error-handling workflow in n8n.
-2. Click the **`...`** menu (top right) → **Download**.
-3. Before committing, check it for the same kind of instance-specific
-   values called out above (Telegram chat ID, credential IDs, `meta.instanceId`)
-   and swap them for placeholders.
-4. Save it here as `openclaw-backup-error-handler.json`.
+### Using it
+
+1. In n8n: **Workflows → Import from File** → select
+   `openclaw-backup-error-handler.json`.
+2. Re-select (or create) the Telegram credential on the "Send a text
+   message1" node — n8n will prompt you since the placeholder credential ID
+   won't match anything in your instance.
+3. Manually replace the **Chat ID** field with your real Telegram chat ID —
+   this is a plain parameter value, so n8n won't prompt for it on its own.
+4. It imports as **inactive** — activate it once you've checked it over.
+5. Go to your main **`openclaw-backup`** workflow → **Settings** → **Error
+   Workflow** → select this workflow, so failures anywhere in the main
+   chain reach it.
 
 ## Workflow structure (for reference)
 
