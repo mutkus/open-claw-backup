@@ -108,6 +108,9 @@ structure to rebuild or export it.
 
 MIT — see [LICENSE](LICENSE).
 
-## Contact
-<br>- Portfolio: <a href="https://mutk.us">mutk.us</a>
-<br>- Blog: <a href="https://mutkus.com">Mutkus.com</a>
+## Author
+
+**Mustafa Utku Seyithanoğlu**
+
+- Personal: [mutk.us](https://mutk.us)
+- Blog: [mutkus.com](https://mutkus.com)
