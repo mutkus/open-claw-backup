@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-#
+# Author: Mustafa Utku Seyithanoglu
+# Personal: mutk.us
+# Blog: mutkus.com
 # openclaw-backup.sh
 #
 # Creates a compressed backup of the OpenClaw data directory (and its
