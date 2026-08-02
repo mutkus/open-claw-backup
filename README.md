@@ -114,3 +114,4 @@ MIT — see [LICENSE](LICENSE).
 
 - Personal: [mutk.us](https://mutk.us)
 - Blog: [mutkus.com](https://mutkus.com)
+- Blog Post (In Turkish): https://www.mutkus.com/cozum/n8n-ile-openclaw-sunucusunun-yedeklerini-google-drivea-almak/
